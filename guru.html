@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>XXCO-TYPOF | Cek Hasil Murid</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-soft:#f6f7fb;
+    --card:#ffffff;
+    --text:#1c1f2e;
+    --text-soft:#6b7280;
+    --border:#e7e9f1;
+    --accent:#5b6cff;
+    --accent-2:#8f9bff;
+    --accent-soft:#eef0ff;
+    --good:#16a34a;
+    --good-soft:#e9f8ef;
+    --bad:#e1473b;
+    --bad-soft:#fdeceb;
+    --shadow: 0 10px 30px rgba(30,35,70,.08);
+    --radius:18px;
+    --time-glow: radial-gradient(circle at 12% -10%, rgba(255,196,107,.35), transparent 45%);
+  }
+  [data-time="siang"]{
+    --accent:#1e8fd6; --accent-2:#5cc4f0; --accent-soft:#e8f6ff;
+    --time-glow: radial-gradient(circle at 90% -10%, rgba(94,196,240,.35), transparent 45%);
+  }
+  [data-time="sore"]{
+    --accent:#e2772f; --accent-2:#f4a35a; --accent-soft:#fff2e6;
+    --time-glow: radial-gradient(circle at 50% -10%, rgba(244,163,90,.35), transparent 45%);
+  }
+  [data-time="malam"]{
+    --accent:#6c4fd6; --accent-2:#a78bf0; --accent-soft:#f1ecff;
+    --time-glow: radial-gradient(circle at 80% -10%, rgba(167,139,240,.3), transparent 45%);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI', -apple-system, system-ui, Roboto, Arial, sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh;
+    background-image:var(--time-glow); background-repeat:no-repeat;
+    transition:background-color .6s ease;
+  }
+  a{color:var(--accent); text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+  input{font-family:inherit;}
+
+  .app{display:none; min-height:100vh; flex-direction:column;}
+  .app.show{display:flex;}
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; background:var(--card); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:50; gap:10px;
+  }
+  .brand{display:flex; align-items:center; gap:9px; font-weight:800; font-size:15px;}
+  .brand .logo-dot{
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:900;
+  }
+  .topbar-right{display:flex; align-items:center; gap:8px;}
+  .time-chip{
+    display:flex; align-items:center; gap:5px; padding:6px 10px; border-radius:999px;
+    background:var(--accent-soft); color:var(--accent); font-size:11.5px; font-weight:700; white-space:nowrap;
+  }
+  .icon-btn{
+    width:34px;height:34px;border-radius:10px;border:1px solid var(--border);
+    background:var(--bg-soft); color:var(--text); display:flex; align-items:center;justify-content:center; font-size:15px;
+  }
+  .icon-btn:hover{background:var(--accent-soft); color:var(--accent); border-color:var(--accent-soft);}
+
+  .login-wrap{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:var(--bg); background-image:var(--time-glow); background-repeat:no-repeat;
+  }
+  .login-card{
+    width:100%; max-width:380px; background:var(--card); border:1px solid var(--border);
+    border-radius:var(--radius); padding:32px 28px; box-shadow:var(--shadow);
+  }
+  .login-logo{
+    width:56px;height:56px;border-radius:16px;margin:0 auto 16px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center; color:#fff; font-weight:900; font-size:22px;
+  }
+  .login-card h1{font-size:19px; text-align:center; margin:0 0 4px;}
+  .login-sub{text-align:center; color:var(--text-soft); font-size:13px; margin:0 0 22px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--text-soft); margin-bottom:6px;}
+  .field input{
+    width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:11px;
+    font-size:14px; background:var(--bg-soft); color:var(--text); outline:none;
+    transition:border-color .15s, background .15s;
+  }
+  .field input:focus{border-color:var(--accent); background:var(--card);}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:11px 18px; border-radius:11px; border:none; font-weight:700; font-size:14px;
+    background:var(--accent); color:#fff; width:100%; transition:transform .12s, box-shadow .12s;
+  }
+  .btn:hover{box-shadow:0 8px 20px rgba(91,108,255,.25); transform:translateY(-1px);}
+  .btn.secondary{background:var(--bg-soft); color:var(--text);}
+  .btn.ghost{background:transparent; color:var(--accent); border:1.5px solid var(--accent-soft);}
+  .btn.sm{padding:8px 13px; font-size:12.5px; width:auto;}
+  .login-error{
+    background:var(--bad-soft); color:var(--bad); font-size:12.5px; font-weight:600;
+    padding:9px 12px; border-radius:10px; margin-bottom:12px; display:none;
+  }
+  .login-hint{margin-top:16px; font-size:11.5px; color:var(--text-soft); text-align:center; line-height:1.5;}
+
+  .closed-overlay{
+    position:fixed; inset:0; background:rgba(255,255,255,.97); backdrop-filter:blur(6px);
+    z-index:999; display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .closed-overlay.show{display:flex;}
+  .closed-box{
+    max-width:400px; text-align:center; background:var(--card); border:1px solid var(--border);
+    border-radius:20px; padding:36px 28px; box-shadow:var(--shadow);
+  }
+  .closed-emoji{font-size:46px; margin-bottom:10px;}
+  .closed-box h2{margin:0 0 8px; font-size:19px;}
+  .closed-box p{color:var(--text-soft); font-size:13.5px; line-height:1.6; margin:0 0 18px;}
+  .closed-countdown{font-size:26px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; margin-bottom:18px;}
+  .schedule-mini{
+    display:flex; justify-content:space-between; gap:10px; font-size:11.5px; color:var(--text-soft);
+    background:var(--bg-soft); border-radius:12px; padding:10px 14px; margin-bottom:16px;
+  }
+
+  .container{flex:1; padding:20px; max-width:900px; margin:0 auto; width:100%;}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; box-shadow:var(--shadow); margin-bottom:16px;
+  }
+  .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; flex-wrap:wrap;}
+  .card-head h3{margin:0; font-size:15.5px;}
+  .card-head p{margin:2px 0 0; font-size:12px; color:var(--text-soft);}
+
+  .grid{display:grid; gap:14px;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:600px){.grid-3{grid-template-columns:1fr 1fr;}}
+  .stat-card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px;
+    box-shadow:var(--shadow); text-align:center;
+  }
+  .stat-card .stat-num{font-size:22px; font-weight:800;}
+  .stat-card .stat-label{font-size:11.5px; color:var(--text-soft); margin-top:2px;}
+
+  .table-wrap{overflow-x:auto; border-radius:14px; border:1px solid var(--border);}
+  table{width:100%; border-collapse:collapse; font-size:13px; min-width:460px;}
+  th{
+    background:var(--bg-soft); text-align:left; padding:10px 12px; font-size:11.5px;
+    color:var(--text-soft); text-transform:uppercase; letter-spacing:.4px; font-weight:800;
+    border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  td{padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--bg-soft);}
+  .badge{display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:999px; font-size:12px; font-weight:800;}
+  .badge.good{background:var(--good-soft); color:var(--good);}
+  .badge.bad{background:var(--bad-soft); color:var(--bad);}
+
+  .search-box{
+    padding:9px 12px; border-radius:10px; border:1.5px solid var(--border); font-size:12.5px;
+    background:var(--bg-soft); min-width:180px; flex:1;
+  }
+  .empty-state{text-align:center; padding:40px 20px; color:var(--text-soft);}
+  .empty-state .e-icon{font-size:36px; margin-bottom:8px;}
+  .empty-state h4{margin:0 0 4px; color:var(--text);}
+  .empty-state p{margin:0; font-size:12.5px;}
+
+  #toastWrap{position:fixed; bottom:20px; right:20px; z-index:1100; display:flex; flex-direction:column; gap:10px;}
+  .toast{
+    background:var(--card); border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:12px; padding:12px 16px; box-shadow:var(--shadow); font-size:13px; font-weight:600;
+    min-width:240px; max-width:320px; animation:slidein .25s ease;
+  }
+  .toast.good{border-left-color:var(--good);}
+  .toast.bad{border-left-color:var(--bad);}
+  @keyframes slidein{from{opacity:0; transform:translateX(20px);} to{opacity:1; transform:translateX(0);}}
+
+  /* AI chat (reuse) */
+  .chat-fab{
+    position:fixed; bottom:22px; right:22px; width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border:none;
+    font-size:22px; box-shadow:0 10px 26px rgba(91,108,255,.4); z-index:900;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .chat-panel{
+    position:fixed; bottom:90px; right:22px; width:340px; max-height:480px; background:var(--card);
+    border:1px solid var(--border); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.2);
+    display:none; flex-direction:column; z-index:901; overflow:hidden;
+  }
+  .chat-panel.show{display:flex;}
+  .chat-head{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; padding:14px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .chat-head b{font-size:13.5px;}
+  .chat-head .chat-sub{font-size:10.5px; opacity:.85;}
+  .chat-model-select{background:rgba(255,255,255,.18); color:#fff; border:none; border-radius:8px; font-size:11px; padding:4px 6px; font-weight:700;}
+  .chat-model-select option{color:#111;}
+  .chat-body{flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; background:var(--bg-soft);}
+  .chat-msg{max-width:82%; padding:9px 12px; border-radius:13px; font-size:12.8px; line-height:1.5;}
+  .chat-msg.bot{background:var(--card); border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:4px;}
+  .chat-msg.user{background:var(--accent); color:#fff; align-self:flex-end; border-bottom-right-radius:4px;}
+  .chat-input-row{display:flex; gap:8px; padding:10px; border-top:1px solid var(--border); background:var(--card);}
+  .chat-input-row input{flex:1; padding:9px 12px; border-radius:10px; border:1.5px solid var(--border); font-size:12.5px; background:var(--bg-soft);}
+  .chat-send{width:36px;height:36px;border-radius:10px; background:var(--accent); color:#fff; border:none; font-size:14px;}
+  .typing-dots span{display:inline-block; width:5px;height:5px;border-radius:50%; background:var(--text-soft); margin:0 1px; animation:blink 1.2s infinite;}
+  .typing-dots span:nth-child(2){animation-delay:.2s;} .typing-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;} 40%{opacity:1;}}
+  .helper-text{font-size:11.5px; color:var(--text-soft); margin-top:4px;}
+  .api-banner{
+    background:var(--accent-soft); color:var(--accent); font-size:11.5px; font-weight:600;
+    padding:10px 14px; border-radius:10px; margin-bottom:14px;
+  }
+  .api-field{margin-bottom:10px;}
+  .api-field input{
+    width:100%; padding:8px 10px; border-radius:9px; border:1.5px solid var(--border); font-size:12px; background:var(--bg-soft);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ OVERLAY WEBSITE TUTUP ============ -->
+<div class="closed-overlay" id="closedOverlay">
+  <div class="closed-box">
+    <div class="closed-emoji">🌙</div>
+    <h2>Website Sedang Tutup</h2>
+    <p>Akses cek hasil hanya tersedia pada jam operasional. Silakan kembali lagi nanti ya.</p>
+    <div class="closed-countdown" id="closedCountdown">--:--:--</div>
+    <div class="schedule-mini">
+      <span>Sen–Rab: 07.00–21.00</span>
+      <span>Kam–Min: 06.00–21.00</span>
+    </div>
+    <button class="btn ghost sm" onclick="location.reload()">🔄 Cek ulang</button>
+  </div>
+</div>
+
+<!-- ============ LOGIN GURU ============ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">X</div>
+    <h1>XXCO-TYPOF</h1>
+    <p class="login-sub">Login Guru — Cek Hasil Murid</p>
+    <div class="login-error" id="loginError"></div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Username dari admin" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="doLogin()">Masuk</button>
+    <p class="login-hint">Belum punya akun? Minta admin untuk generate akun guru terlebih dahulu.</p>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand"><div class="logo-dot">X</div> <span id="topbarTitle">XXCO-TYPOF · Guru</span></div>
+    <div class="topbar-right">
+      <span class="time-chip" id="timeChip">☀️ Pagi</span>
+      <button class="icon-btn" title="Logout" onclick="doLogout()">⏻</button>
+    </div>
+  </div>
+  <div class="container" id="resultContainer"></div>
+</div>
+
+<div id="toastWrap"></div>
+
+<!-- ===== AI CHAT WIDGET ===== -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()">💬</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-head">
+    <div>
+      <b>XXCO-TYPOF Assist</b><br>
+      <span class="chat-sub">Bantu cek hasil murid</span>
+    </div>
+    <select class="chat-model-select" id="chatModelSelect">
+      <option value="gemini">Gemini</option>
+      <option value="groq">Groq</option>
+    </select>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Tanya sesuatu..." onkeydown="if(event.key==='Enter')sendChat();">
+    <button class="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   XXCO-TYPOF — GURU (Cek Hasil Murid)
+   =========================================================
+   Catatan teknis: akun guru dibuat di device admin (localStorage
+   admin.html). Karena tidak ada server, kredensial guru perlu
+   "diklaim" satu kali di device guru menggunakan data yang dikirim
+   admin (Nama, Username, Password). Setelah diklaim, akun tersimpan
+   lokal di device guru tersebut dan bisa dipakai login berkali-kali.
+   ========================================================= */
+
+const LS = {
+  LOCAL_TEACHER: 'xxco_local_teacher',      // akun guru yang sudah diklaim di device ini
+  SESSION: 'xxco_session_guru',
+  API_KEYS: 'xxco_api_keys',
+  CHAT_HISTORY: 'xxco_chat_history_guru'
+};
+
+// ---------- JADWAL BUKA/TUTUP (sama dengan admin.html) ----------
+function getScheduleForDay(day){
+  if(day>=1 && day<=3){ return {open:7, close:21}; }
+  return {open:6, close:21};
+}
+function isWebsiteOpen(now){
+  now = now || new Date();
+  const day = now.getDay();
+  const sch = getScheduleForDay(day);
+  const h = now.getHours() + now.getMinutes()/60;
+  return h >= sch.open && h < sch.close;
+}
+function getNextOpenTime(now){
+  now = now || new Date();
+  let d = new Date(now);
+  for(let i=0;i<8;i++){
+    const sch = getScheduleForDay(d.getDay());
+    const openDate = new Date(d); openDate.setHours(sch.open,0,0,0);
+    if(i===0){
+      const h = now.getHours()+now.getMinutes()/60;
+      if(h < sch.open){ return openDate; }
+    } else {
+      return openDate;
+    }
+    d.setDate(d.getDate()+1);
+  }
+  return d;
+}
+
+// ---------- TEMA WAKTU ----------
+function getTimeOfDay(now){
+  now = now || new Date();
+  const h = now.getHours();
+  if(h>=5 && h<11) return {key:'pagi', label:'☀️ Pagi', cls:'pagi'};
+  if(h>=11 && h<15) return {key:'siang', label:'🌤️ Siang', cls:'siang'};
+  if(h>=15 && h<18) return {key:'sore', label:'🌇 Sore', cls:'sore'};
+  return {key:'malam', label:'🌙 Malam', cls:'malam'};
+}
+function applyTimeTheme(){
+  const t = getTimeOfDay();
+  document.documentElement.setAttribute('data-time', t.cls === 'pagi' ? '' : t.cls);
+  const chip = document.getElementById('timeChip');
+  if(chip) chip.textContent = t.label;
+}
+function updateClock(){
+  applyTimeTheme();
+  checkOpenStatus();
+}
+function checkOpenStatus(){
+  const open = isWebsiteOpen();
+  const overlay = document.getElementById('closedOverlay');
+  const session = sessionStorage.getItem(LS.SESSION);
+  if(!open && session){
+    overlay.classList.add('show');
+    updateClosedCountdown();
+  } else {
+    overlay.classList.remove('show');
+  }
+}
+function updateClosedCountdown(){
+  const next = getNextOpenTime();
+  const diffMs = next - new Date();
+  if(diffMs<=0){ location.reload(); return; }
+  const h = Math.floor(diffMs/3600000);
+  const m = Math.floor((diffMs%3600000)/60000);
+  const s = Math.floor((diffMs%60000)/1000);
+  const el = document.getElementById('closedCountdown');
+  if(el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ---------- LOCAL TEACHER ACCOUNT (klaim sekali per device) ----------
+function getLocalTeacher(){ return JSON.parse(localStorage.getItem(LS.LOCAL_TEACHER) || 'null'); }
+function saveLocalTeacher(t){ localStorage.setItem(LS.LOCAL_TEACHER, JSON.stringify(t)); }
+
+function doLogin(){
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display='none';
+
+  if(!user || !pass){
+    errEl.style.display='block'; errEl.textContent='Isi username dan password.';
+    return;
+  }
+
+  const local = getLocalTeacher();
+  if(local && local.username === user){
+    // device ini sudah pernah klaim akun ini, cek password
+    if(local.password === pass){
+      sessionStorage.setItem(LS.SESSION, '1');
+      enterApp();
+    } else {
+      errEl.style.display='block'; errEl.textContent='Password salah.';
+    }
+    return;
+  }
+
+  // belum ada akun lokal di device ini -> klaim akun baru dengan kredensial dari admin
+  // username diharapkan unik & password minimal 6 karakter (format dari admin.html)
+  if(pass.length < 4){
+    errEl.style.display='block'; errEl.textContent='Username/password belum dikenali. Pastikan sesuai data dari admin.';
+    return;
+  }
+  const newTeacher = { username: user, password: pass, name: user, claimedAt: Date.now() };
+  saveLocalTeacher(newTeacher);
+  sessionStorage.setItem(LS.SESSION, '1');
+  showToast('Akun berhasil diaktifkan di device ini', 'good');
+  enterApp();
+}
+function doLogout(){
+  sessionStorage.removeItem(LS.SESSION);
+  location.reload();
+}
+function enterApp(){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('app').classList.add('show');
+  renderChatHistory();
+  checkOpenStatus();
+  renderResultPage();
+}
+
+// ---------- TOAST ----------
+function showToast(msg, type){
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' '+type : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 3200);
+}
+
+// ---------- UTIL ----------
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---------- BOOT ----------
+window.addEventListener('DOMContentLoaded', ()=>{
+  applyTimeTheme();
+  updateClock();
+  setInterval(updateClock, 1000);
+  if(sessionStorage.getItem(LS.SESSION)){
+    enterApp();
+  }
+});
+
+// =========================================================
+// BACA DATA BATCH DARI LINK (?data=base64)
+// =========================================================
+function getBatchFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const raw = params.get('data');
+  if(!raw) return null;
+  try{
+    const json = decodeURIComponent(escape(atob(raw)));
+    return JSON.parse(json);
+  }catch(e){
+    return null;
+  }
+}
+
+function renderResultPage(){
+  const container = document.getElementById('resultContainer');
+  const batch = getBatchFromUrl();
+
+  if(!batch){
+    container.innerHTML = `
+      <div class="card">
+        <div class="empty-state">
+          <div class="e-icon">🔗</div>
+          <h4>Belum ada link batch dibuka</h4>
+          <p>Minta admin membagikan link hasil pendaftaran murid (dari menu Riwayat Batch). Buka link itu di browser ini untuk melihat hasil.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const lulus = batch.murid.filter(m=>m.naik).length;
+  const tidak = batch.murid.length - lulus;
+
+  let muridList = batch.murid;
+
+  function draw(filterText){
+    filterText = (filterText||'').toLowerCase();
+    const filtered = muridList.filter(m=>m.nama.toLowerCase().includes(filterText));
+    const rows = filtered.map(m=>`
+      <tr>
+        <td>${escapeHtml(m.nama)}</td>
+        <td>${escapeHtml(String(m.umur))}</td>
+        <td>${escapeHtml(String(m.kakIdx))}</td>
+        <td>${m.naik ? '<span class="badge good">✅ Lulus / Naik</span>' : '<span class="badge bad">❌ Tidak Naik</span>'}</td>
+      </tr>`).join('');
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>📋 ${escapeHtml(batch.name)}</h3>
+            <p>${batch.note ? escapeHtml(batch.note) + ' · ' : ''}Dibuat ${new Date(batch.createdAt).toLocaleString('id-ID')}</p>
+          </div>
+        </div>
+        <div class="grid grid-3" style="margin-bottom:16px;">
+          <div class="stat-card"><div class="stat-num">${batch.murid.length}</div><div class="stat-label">Total Murid</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--good);">${lulus}</div><div class="stat-label">Lulus / Naik</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--bad);">${tidak}</div><div class="stat-label">Tidak Naik</div></div>
+        </div>
+        <input type="text" class="search-box" id="searchMurid" placeholder="🔎 Cari nama murid..." style="margin-bottom:12px; width:100%;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama</th><th>Umur</th><th>Anak ke-</th><th>Status</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="4" style="text-align:center; color:var(--text-soft); padding:20px;">Tidak ada murid yang cocok</td></tr>'}</tbody>
+          </table>
+        </div>
+        <button class="btn secondary sm" style="margin-top:14px;" onclick="printResult()">🖨️ Cetak Hasil</button>
+      </div>`;
+
+    document.getElementById('searchMurid').addEventListener('input', e=> draw(e.target.value));
+  }
+  draw('');
+}
+
+function printResult(){
+  window.print();
+}
+
+// =========================================================
+// AI CHAT — XXCO-TYPOF Assist (Gemini + Groq)
+// =========================================================
+function getChatHistory(){ return JSON.parse(localStorage.getItem(LS.CHAT_HISTORY) || '[]'); }
+function saveChatHistory(arr){ localStorage.setItem(LS.CHAT_HISTORY, JSON.stringify(arr)); }
+function toggleChat(){ document.getElementById('chatPanel').classList.toggle('show'); }
+function getApiKeys(){ return JSON.parse(localStorage.getItem(LS.API_KEYS) || '{}'); }
+
+function renderChatHistory(){
+  const body = document.getElementById('chatBody');
+  const hist = getChatHistory();
+  const keys = getApiKeys();
+  let banner = '';
+  if(!keys.gemini && !keys.groq){
+    banner = `<div class="api-banner">⚠️ API key belum diisi di device ini.</div>
+      <div class="api-field"><input type="text" id="quickGemini" placeholder="Gemini API Key (opsional)"></div>
+      <div class="api-field"><input type="text" id="quickGroq" placeholder="Groq API Key (opsional)"></div>
+      <button class="btn sm" style="width:100%; margin-bottom:10px;" onclick="saveQuickApiKeys()">💾 Simpan API Key</button>`;
+  }
+  if(hist.length===0){
+    body.innerHTML = banner + `<div class="chat-msg bot">Hai! Saya XXCO-TYPOF Assist 🤖<br>Tanya saya seputar cara cek hasil murid atau hal lainnya ya.</div>`;
+    return;
+  }
+  body.innerHTML = banner + hist.map(m=>`<div class="chat-msg ${m.role==='user'?'user':'bot'}">${escapeHtml(m.text)}</div>`).join('');
+  body.scrollTop = body.scrollHeight;
+}
+function saveQuickApiKeys(){
+  const k = {
+    gemini: document.getElementById('quickGemini') ? document.getElementById('quickGemini').value.trim() : '',
+    groq: document.getElementById('quickGroq') ? document.getElementById('quickGroq').value.trim() : ''
+  };
+  localStorage.setItem(LS.API_KEYS, JSON.stringify(k));
+  showToast('API key disimpan di device ini', 'good');
+  renderChatHistory();
+}
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value='';
+  const hist = getChatHistory();
+  hist.push({role:'user', text});
+  saveChatHistory(hist);
+  renderChatHistory();
+
+  const body = document.getElementById('chatBody');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'chat-msg bot typing-dots';
+  typingEl.innerHTML = '<span></span><span></span><span></span>';
+  body.appendChild(typingEl);
+  body.scrollTop = body.scrollHeight;
+
+  const model = document.getElementById('chatModelSelect').value;
+  const keys = getApiKeys();
+  let reply = '';
+  try{
+    if(model === 'gemini'){
+      if(!keys.gemini) throw new Error('Gemini API key belum diisi');
+      reply = await callGemini(keys.gemini, text);
+    } else {
+      if(!keys.groq) throw new Error('Groq API key belum diisi');
+      reply = await callGroq(keys.groq, text);
+    }
+  } catch(e){
+    reply = '⚠️ ' + (e.message || 'Terjadi kesalahan saat menghubungi AI');
+  }
+  typingEl.remove();
+  const hist2 = getChatHistory();
+  hist2.push({role:'bot', text:reply});
+  saveChatHistory(hist2);
+  renderChatHistory();
+}
+async function callGemini(apiKey, prompt){
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents: [{ parts: [{ text: `Kamu adalah XXCO-TYPOF Assist, asisten ramah untuk guru yang sedang cek hasil murid, berbahasa Indonesia. Jawab singkat dan jelas.\n\nPertanyaan: ${prompt}` }] }] })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message || 'Gemini error');
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, tidak ada respon.';
+}
+async function callGroq(apiKey, prompt){
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey},
+    body: JSON.stringify({
+      model:'llama-3.3-70b-versatile',
+      messages:[
+        {role:'system', content:'Kamu adalah XXCO-TYPOF Assist, asisten ramah untuk guru yang sedang cek hasil murid, berbahasa Indonesia. Jawab singkat dan jelas.'},
+        {role:'user', content: prompt}
+      ]
+    })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message || 'Groq error');
+  return data?.choices?.[0]?.message?.content || 'Maaf, tidak ada respon.';
+}
+</script>
+
+</body>
+</html>
